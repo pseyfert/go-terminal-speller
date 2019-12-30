@@ -24,7 +24,9 @@ func (myself *translator) Write(p []byte) (int, error) {
 	p_string := string(p)
 	var retval int
 	for _, r := range p_string {
-		if unicode.IsSymbol(r) {
+		// if unicode.IsSymbol(r) {
+		if unicode.IsOneOf([]*unicode.RangeTable{unicode.So, unicode.Sk}, r) {
+
 			i, err := (myself.w).Write([]byte{':'})
 			if err != nil {
 				// FIXME: check 0
