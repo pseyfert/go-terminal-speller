@@ -1,7 +1,6 @@
 package terminalspeller
 
 import (
-	// "golang.org/x/text/unicode/norm"
 	"golang.org/x/text/unicode/runenames"
 	"io"
 	"strings"
@@ -21,7 +20,7 @@ func NewTranslator(writer io.Writer) translator {
 	return retval
 }
 
-func (myself translator) Write(p []byte) (int, error) {
+func (myself *translator) Write(p []byte) (int, error) {
 	p_string := string(p)
 	var retval int
 	for _, r := range p_string {

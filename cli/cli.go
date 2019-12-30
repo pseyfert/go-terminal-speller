@@ -11,7 +11,7 @@ func main() {
 	flag.Parse()
 
 	t := termspeller.NewTranslator(os.Stdout)
-	writer := norm.NFD.Writer(t)
+	writer := norm.NFD.Writer(&t)
 	for _, fl := range flag.Args() {
 		writer.Write([]byte(fl))
 		writer.Write([]byte(" "))
