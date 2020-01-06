@@ -17,7 +17,6 @@
 package terminalspeller
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 )
@@ -31,11 +30,11 @@ func TestNoChange(t *testing.T) {
 		{"the ∑ xᵢ i² ≥ 11"},
 	}
 	for _, testcase := range testcases {
-		var buffer bytes.Buffer
+		var buffer strings.Builder
 		writer := NewTranslator(&buffer)
-		writer.Write([]byte(testcase.Msg)) // CHECKME
-		if bytes.Compare(buffer.Bytes(), []byte(testcase.Msg)) != 0 {
-			t.Errorf("Message that wasn't to be altered got altered: got '%s' (expected '%s')", buffer.Bytes(), testcase.Msg)
+		writer.WriteString(testcase.Msg) // CHECKME
+		if strings.Compare(buffer.String(), testcase.Msg) != 0 {
+			t.Errorf("Message that wasn't to be altered got altered: got '%s' (expected '%s')", buffer.String(), testcase.Msg)
 		}
 	}
 }
@@ -57,9 +56,9 @@ func TestEmojis(t *testing.T) {
 		{"∫ ☺ ⌢ ∼ …", "∫ :white_smiling_face: :frown: ∼ …"},
 	}
 	for _, testcase := range testcases {
-		var buffer bytes.Buffer
+		var buffer strings.Builder
 		writer := NewTranslator(&buffer)
-		writer.Write([]byte(testcase.Msg)) // CHECKME
+		writer.WriteString(testcase.Msg) // CHECKME
 		if strings.Compare(buffer.String(), testcase.Expected) != 0 {
 			t.Errorf("Emoji in '%s' didn't get spelled out as expected: got '%s' (expected '%s')", testcase.Msg, buffer.String(), testcase.Expected)
 		}

@@ -17,10 +17,12 @@
 package terminalspeller
 
 import (
-	"golang.org/x/text/unicode/runenames"
+	"errors"
 	"io"
 	"strings"
 	"unicode"
+
+	"golang.org/x/text/unicode/runenames"
 )
 
 type translator struct {
@@ -36,40 +38,40 @@ func NewTranslator(writer io.Writer) translator {
 	return retval
 }
 
-func (myself *translator) Write(p []byte) (int, error) {
-	p_string := string(p)
-	var retval int
+func StringForceTranslate(p_string string) (string, error) {
+	var sb strings.Builder
+	didsomething := false
 	for _, r := range p_string {
-		// if unicode.IsSymbol(r) {
 		if unicode.IsOneOf([]*unicode.RangeTable{unicode.So, unicode.Sk}, r) {
-
-			i, err := (myself.w).Write([]byte{':'})
-			if err != nil {
-				// FIXME: check 0
-				return 0, err
-			}
-			retval += i
-			i, err = (myself.w).Write([]byte(strings.ReplaceAll(strings.ToLower(runenames.Name(r)), " ", "_")))
-			myself.Didsomething = true
-			if err != nil {
-				// FIXME: check 0
-				return 0, err
-			}
-			retval += i
-			i, err = (myself.w).Write([]byte{':'})
-			if err != nil {
-				// FIXME: check 0
-				return 0, err
-			}
-			retval += i
+			sb.WriteRune(':')
+			sb.WriteString(strings.ReplaceAll(strings.ToLower(runenames.Name(r)), " ", "_"))
+			didsomething = true
+			sb.WriteRune(':')
 		} else {
-			i, err := (myself.w).Write([]byte(string(r)))
-			if err != nil {
-				// FIXME: check 0
-				return 0, err
-			}
-			retval += i
+			sb.WriteRune(r)
 		}
 	}
-	return retval, nil
+	if didsomething {
+		return sb.String(), nil
+	}
+	return p_string, ErrNoReplacment
 }
+
+func (myself *translator) WriteString(p_string string) (int, error) {
+	translation, err := StringForceTranslate(p_string)
+	if err != ErrNoReplacment {
+		myself.Didsomething = true
+	}
+	return io.WriteString(myself.w, translation)
+}
+
+func (myself *translator) Write(p []byte) (int, error) {
+	// FIXME: how to handle unterminated unicode code points?
+	translation, err := StringForceTranslate(string(p))
+	if err != ErrNoReplacment {
+		myself.Didsomething = true
+	}
+	return io.WriteString(myself.w, translation)
+}
+
+var ErrNoReplacment = errors.New("No replacement has been done despite being requested")
