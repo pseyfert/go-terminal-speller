@@ -79,7 +79,8 @@ func StringForceTranslate(p_string string) (string, error) {
 				}
 				combiner.Reset()
 			}
-		} else if unicode.Is(unicode.So, r) {
+		}
+		if unicode.Is(unicode.So, r) {
 			combiner.WriteRune(r)
 		}
 
