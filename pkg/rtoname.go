@@ -78,9 +78,11 @@ func StringForceTranslate(p_string string) (string, error) {
 					sb.WriteString(fmt.Sprintf("[%s]", url))
 				}
 				combiner.Reset()
+				if unicode.Is(unicode.So, r) {
+					combiner.WriteRune(r)
+				}
 			}
-		}
-		if unicode.Is(unicode.So, r) {
+		} else if unicode.Is(unicode.So, r) {
 			combiner.WriteRune(r)
 		}
 
