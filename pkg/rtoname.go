@@ -45,6 +45,18 @@ func EmojipediaUrl(emoji string) (string, error) {
 	return resolved, err
 }
 
+func RuneReplace(r rune, sb io.StringWriter) bool {
+	if unicode.IsOneOf([]*unicode.RangeTable{unicode.So, unicode.Sk}, r) {
+		sb.WriteString(":")
+		sb.WriteString(strings.ReplaceAll(strings.ToLower(runenames.Name(r)), " ", "_"))
+		sb.WriteString(":")
+		return true
+	} else {
+		sb.WriteString(string(r))
+		return false
+	}
+}
+
 func StringForceTranslate(p_string string) (string, error) {
 	var sb strings.Builder
 	var combiner strings.Builder
@@ -71,14 +83,7 @@ func StringForceTranslate(p_string string) (string, error) {
 			combiner.WriteRune(r)
 		}
 
-		if unicode.IsOneOf([]*unicode.RangeTable{unicode.So, unicode.Sk}, r) {
-			sb.WriteRune(':')
-			sb.WriteString(strings.ReplaceAll(strings.ToLower(runenames.Name(r)), " ", "_"))
-			didsomething = true
-			sb.WriteRune(':')
-		} else {
-			sb.WriteRune(r)
-		}
+		didsomething = RuneReplace(r, &sb) || didsomething
 	}
 	if didsomething {
 		return sb.String(), nil
