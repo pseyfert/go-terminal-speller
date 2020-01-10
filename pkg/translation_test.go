@@ -64,3 +64,20 @@ func TestEmojis(t *testing.T) {
 		}
 	}
 }
+
+func TestMultipointEmoji(t *testing.T) {
+	testcases := []struct {
+		Emoji string
+		Url   string
+	}{
+		{"👁️‍🗨️", "https://emojipedia.org/eye-in-speech-bubble/"},                 // \u1f441\ufe0f\u200d\u1f5e8\ufe0f
+		{"👨🏼‍🦰", "https://emojipedia.org/man-red-haired-medium-light-skin-tone/"}, // \u1f468\u1f3fc\u200d\u1f9b0
+		{"🚵‍♀️", "https://emojipedia.org/woman-mountain-biking/"},                 // \u1f6b5\u200d\u2640\ufe0f
+	}
+
+	for _, testcase := range testcases {
+		if resolved, _ := EmojipediaUrl(testcase.Emoji); 0 != strings.Compare(resolved, testcase.Url) {
+			t.Errorf("EmojipediaUrl did not resolve: http://📙.la/%s → %s (expected: %s)", testcase.Emoji, resolved, testcase.Url)
+		}
+	}
+}

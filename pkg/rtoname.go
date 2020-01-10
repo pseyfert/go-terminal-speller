@@ -18,10 +18,12 @@ package terminalspeller
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"unicode"
 
+	"github.com/pseyfert/go-http-redirect-resolve/resolve"
 	"golang.org/x/text/unicode/runenames"
 )
 
@@ -38,10 +40,37 @@ func NewTranslator(writer io.Writer) translator {
 	return retval
 }
 
+func EmojipediaUrl(emoji string) (string, error) {
+	resolved, err := resolve.Resolve(fmt.Sprintf("http://📙.la/%s", emoji))
+	return resolved, err
+}
+
 func StringForceTranslate(p_string string) (string, error) {
 	var sb strings.Builder
+	var combiner strings.Builder
 	didsomething := false
 	for _, r := range p_string {
+		if combiner.Len() != 0 {
+			// check if a combination continues (or if a new emoji starts)
+			if unicode.Is(unicode.Sk, r) { // modifier
+				combiner.WriteRune(r)
+			} else if str := []rune(combiner.String()); str[len(str)-1] == []rune("\u200d")[0] { // zero width joiner
+				combiner.WriteRune(r)
+			} else if r == '\ufe0f' { // print previous character as emoji https://emojipedia.org/emoji/%EF%B8%8F/
+				combiner.WriteRune(r)
+			} else if r == '\u200d' { // zero width joiner https://emojipedia.org/zero-width-joiner/
+				combiner.WriteRune(r)
+			} else {
+				url, err := EmojipediaUrl(combiner.String())
+				if err == nil {
+					sb.WriteString(fmt.Sprintf("[%s]", url))
+				}
+				combiner.Reset()
+			}
+		} else if unicode.Is(unicode.So, r) {
+			combiner.WriteRune(r)
+		}
+
 		if unicode.IsOneOf([]*unicode.RangeTable{unicode.So, unicode.Sk}, r) {
 			sb.WriteRune(':')
 			sb.WriteString(strings.ReplaceAll(strings.ToLower(runenames.Name(r)), " ", "_"))
@@ -53,6 +82,9 @@ func StringForceTranslate(p_string string) (string, error) {
 	}
 	if didsomething {
 		return sb.String(), nil
+	}
+	if sb.Len() != 0 {
+		sb.WriteString(fmt.Sprintf("[http://📙.la/%s]", combiner.String()))
 	}
 	return p_string, ErrNoReplacment
 }
