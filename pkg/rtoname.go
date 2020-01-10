@@ -88,7 +88,7 @@ func StringForceTranslate(p_string string) (string, error) {
 
 		didsomething = RuneReplace(r, &sb) || didsomething
 	}
-	if sb.Len() != 0 {
+	if combiner.Len() != 0 {
 		url, err := EmojipediaUrl(combiner.String())
 		if err == nil {
 			sb.WriteString(fmt.Sprintf("[%s]", url))
