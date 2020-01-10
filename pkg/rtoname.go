@@ -86,11 +86,14 @@ func StringForceTranslate(p_string string) (string, error) {
 
 		didsomething = RuneReplace(r, &sb) || didsomething
 	}
+	if sb.Len() != 0 {
+		url, err := EmojipediaUrl(combiner.String())
+		if err == nil {
+			sb.WriteString(fmt.Sprintf("[%s]", url))
+		}
+	}
 	if didsomething {
 		return sb.String(), nil
-	}
-	if sb.Len() != 0 {
-		sb.WriteString(fmt.Sprintf("[http://📙.la/%s]", combiner.String()))
 	}
 	return p_string, ErrNoReplacment
 }
